@@ -89,7 +89,7 @@ const Discount = () => {
       .then((e) => {
         if (e?.success) {
           toast.success(e?.data?.message);
-          getDiscount(); // discountlarni qayta yuklash
+          getDiscount();
           closeDeleteModal();
         } else {
           toast.error(e?.message);
