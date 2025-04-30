@@ -3,34 +3,31 @@ import { toast } from 'react-toastify';
 
 const Discount = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => {
-    setIsModalOpen(false);
-  };
- 
   const [loading, setLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedDiscountId, setSelectedDiscountId] = useState(null);
+  const [status, setStatus] = useState(false);
+  const [discountt, setDiscountt] = useState([]);
+  const [discount, setDiscount] = useState(0);
+  const [started_at, setStarted_at] = useState('');
+  const [finished_at, setFinished_at] = useState('');
+  const token = localStorage.getItem('token');
 
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
   const openDeleteModal = (id) => {
     setSelectedDiscountId(id);
     setIsDeleteModalOpen(true);
   };
-
   const closeDeleteModal = () => {
     setIsDeleteModalOpen(false);
-    setSelectedDiscountId(null); // discount ID ni tozalash
+    setSelectedDiscountId(null);
   };
-
   const confirmDelete = () => {
     if (!selectedDiscountId) return;
     deleteDiscount(selectedDiscountId);
   };
 
-  const [status, setStatus] = useState(false);
-
-  // Get discount
-  const [discountt, setDiscountt] = useState([]);
   const getDiscount = () => {
     setLoading(true);
     fetch('https://back.ifly.com.uz/api/discount')
@@ -43,40 +40,53 @@ const Discount = () => {
     getDiscount();
   }, []);
 
-  // Token va discount qo'shish
-  const token = localStorage.getItem('token');
-  const [discount, setDiscount] = useState('');
-  const [started_at, setStarted_at] = useState('');
-  const [finished_at, setFinished_at] = useState('');
-
   const handleSubmit = (e) => {
     e.preventDefault();
+
+    if (!token) {
+      toast.error("Token topilmadi. Iltimos, tizimga qayta kiring.");
+      return;
+    }
+
     fetch('https://back.ifly.com.uz/api/discount', {
       method: 'POST',
       headers: {
         'Content-type': 'application/json',
-        "Authorization": `Bearer ${token}`,
+        'Authorization': `Bearer ${token}`,
       },
       body: JSON.stringify({
-        discount: discount,
-        started_at: started_at,
-        finished_at: finished_at,
-        status: status, // checkboxning qiymatini yuborish
+        discount: Number(discount),
+        started_at,
+        finished_at,
+        status: Boolean(status),
       }),
     })
-      .then((res) => res.json())
-      .then((e) => {
-        if (e?.success) {
-          toast.success("Discount added successfully");
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((err) => {
+            throw new Error(err?.message || "Error");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (data?.success) {
+          toast.success("Discount added successfully!");
           getDiscount();
           setIsModalOpen(false);
+          setDiscount(0);
+          setStarted_at('');
+          setFinished_at('');
+          setStatus(false);
         } else {
-          toast.error(e?.message?.message);
+          toast.error(data?.message || "Xatolik yuz berdi");
         }
+      })
+      .catch((err) => {
+        toast.error("Xatolik: " + err.message);
       });
   };
 
-  // Delete discount
   const deleteDiscount = (id) => {
     fetch(`https://back.ifly.com.uz/api/discount/${id}`, {
       method: 'DELETE',
@@ -153,7 +163,7 @@ const Discount = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/10 bg-opacity-50 backdrop-blur-sm z-50">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
             <button
               onClick={closeModal}
@@ -167,6 +177,7 @@ const Discount = () => {
                 <input
                   type="number"
                   placeholder="Discount (%)"
+                  value={discount}
                   onChange={(e) => setDiscount(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
                   required
@@ -176,7 +187,7 @@ const Discount = () => {
               <div>
                 <input
                   type="date"
-                  placeholder="Start Date"
+                  value={started_at}
                   onChange={(e) => setStarted_at(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
                   required
@@ -186,7 +197,7 @@ const Discount = () => {
               <div>
                 <input
                   type="date"
-                  placeholder="End Date"
+                  value={finished_at}
                   onChange={(e) => setFinished_at(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
                   required
