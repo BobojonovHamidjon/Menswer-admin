@@ -7,6 +7,7 @@ const Contact = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [contact, setContact] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [editMode, setEditMode] = useState(false);
 
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
@@ -17,7 +18,17 @@ const Contact = () => {
   const token = localStorage.getItem('token');
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setEditMode(false);
+    setSelectedId(null);
+    setPhone('');
+    setEmail('');
+    setAddress_en('');
+    setAddress_ru('');
+    setAddress_de('');
+  };
 
   const openDeleteModal = (id) => {
     setSelectedId(id);
@@ -43,8 +54,14 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('https://back.ifly.com.uz/api/contact', {
-      method: 'POST',
+
+    const url = editMode
+      ? `https://back.ifly.com.uz/api/contact/${selectedId}`
+      : 'https://back.ifly.com.uz/api/contact';
+    const method = editMode ? 'PATCH' : 'POST';
+
+    fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
@@ -60,11 +77,11 @@ const Contact = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data?.success) {
-          toast.success('Contact created successfully!');
+          toast.success(`Contact ${editMode ? 'updated' : 'created'} successfully!`);
           getContact();
           closeModal();
         } else {
-          toast.error(data?.message || 'Failed to create contact.');
+          toast.error(data?.message || `Failed to ${editMode ? 'update' : 'create'} contact.`);
         }
       })
       .catch(() => toast.error('Something went wrong!'));
@@ -96,9 +113,19 @@ const Contact = () => {
     deleteContact(selectedId);
   };
 
+  const handleEdit = (item) => {
+    setEditMode(true);
+    setSelectedId(item.id);
+    setPhone(item.phone_number);
+    setEmail(item.email);
+    setAddress_en(item.address_en);
+    setAddress_ru(item.address_ru);
+    setAddress_de(item.address_de);
+    setIsModalOpen(true);
+  };
+
   return (
     <div className="p-6 relative">
-
       {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold">Contact</h1>
@@ -135,7 +162,10 @@ const Contact = () => {
                   <td className="px-4 py-2 border">{item?.email}</td>
                   <td className="px-4 py-2 border">{item?.address_en}</td>
                   <td className="px-4 py-2 border flex gap-2">
-                    <button className="bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded"
+                    >
                       Edit
                     </button>
                     <button
@@ -152,7 +182,7 @@ const Contact = () => {
         )}
       </div>
 
-      {/* Add Contact Modal */}
+      {/* Add/Edit Contact Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
@@ -162,13 +192,14 @@ const Contact = () => {
             >
               ✕
             </button>
-            <h2 className="text-2xl font-bold mb-6 text-center">Add Contact</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              {editMode ? 'Edit Contact' : 'Add Contact'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block font-semibold mb-1">Phone Number</label>
                 <input
                   type="tel"
-                  placeholder="Phone"
                   maxLength={20}
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -180,7 +211,6 @@ const Contact = () => {
                 <label className="block font-semibold mb-1">Email</label>
                 <input
                   type="email"
-                  placeholder="Email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -190,7 +220,6 @@ const Contact = () => {
               <div>
                 <label className="block font-semibold mb-1">Address (EN)</label>
                 <textarea
-                  placeholder="Address (EN)"
                   value={address_en}
                   onChange={(e) => setAddress_en(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -200,7 +229,6 @@ const Contact = () => {
               <div>
                 <label className="block font-semibold mb-1">Address (RU)</label>
                 <textarea
-                  placeholder="Address (RU)"
                   value={address_ru}
                   onChange={(e) => setAddress_ru(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -210,7 +238,6 @@ const Contact = () => {
               <div>
                 <label className="block font-semibold mb-1">Address (DE)</label>
                 <textarea
-                  placeholder="Address (DE)"
                   value={address_de}
                   onChange={(e) => setAddress_de(e.target.value)}
                   className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
@@ -221,7 +248,7 @@ const Contact = () => {
                 type="submit"
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded mt-4"
               >
-                Add Contact
+                {editMode ? 'Update Contact' : 'Add Contact'}
               </button>
             </form>
           </div>

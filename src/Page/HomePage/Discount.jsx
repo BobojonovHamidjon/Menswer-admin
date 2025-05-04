@@ -6,15 +6,24 @@ const Discount = () => {
   const [loading, setLoading] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedDiscountId, setSelectedDiscountId] = useState(null);
-  const [status, setStatus] = useState(false);
   const [discountt, setDiscountt] = useState([]);
+
   const [discount, setDiscount] = useState(0);
   const [started_at, setStarted_at] = useState('');
   const [finished_at, setFinished_at] = useState('');
+  const [status, setStatus] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingId, setEditingId] = useState(null);
+
   const token = localStorage.getItem('token');
 
   const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setIsEditMode(false);
+    clearForm();
+  };
+
   const openDeleteModal = (id) => {
     setSelectedDiscountId(id);
     setIsDeleteModalOpen(true);
@@ -23,9 +32,13 @@ const Discount = () => {
     setIsDeleteModalOpen(false);
     setSelectedDiscountId(null);
   };
-  const confirmDelete = () => {
-    if (!selectedDiscountId) return;
-    deleteDiscount(selectedDiscountId);
+
+  const clearForm = () => {
+    setDiscount(0);
+    setStarted_at('');
+    setFinished_at('');
+    setStatus(false);
+    setEditingId(null);
   };
 
   const getDiscount = () => {
@@ -40,6 +53,16 @@ const Discount = () => {
     getDiscount();
   }, []);
 
+  const handleEdit = (item) => {
+    setIsEditMode(true);
+    setEditingId(item.id);
+    setDiscount(item.discount);
+    setStarted_at(item.started_at);
+    setFinished_at(item.finished_at);
+    setStatus(item.status);
+    setIsModalOpen(true);
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
@@ -48,36 +71,33 @@ const Discount = () => {
       return;
     }
 
-    fetch('https://back.ifly.com.uz/api/discount', {
-      method: 'POST',
+    const payload = {
+      discount: Number(discount),
+      started_at,
+      finished_at,
+      status: Boolean(status),
+    };
+
+    const url = isEditMode
+      ? `https://back.ifly.com.uz/api/discount/${editingId}`
+      : 'https://back.ifly.com.uz/api/discount';
+
+    const method = isEditMode ? 'PATCH' : 'POST';
+
+    fetch(url, {
+      method,
       headers: {
         'Content-type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
-      body: JSON.stringify({
-        discount: Number(discount),
-        started_at,
-        finished_at,
-        status: Boolean(status),
-      }),
+      body: JSON.stringify(payload),
     })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((err) => {
-            throw new Error(err?.message || "Error");
-          });
-        }
-        return res.json();
-      })
+      .then((res) => res.json())
       .then((data) => {
         if (data?.success) {
-          toast.success("Discount added successfully!");
+          toast.success(isEditMode ? "Discount updated!" : "Discount added!");
           getDiscount();
-          setIsModalOpen(false);
-          setDiscount(0);
-          setStarted_at('');
-          setFinished_at('');
-          setStatus(false);
+          closeModal();
         } else {
           toast.error(data?.message || "Xatolik yuz berdi");
         }
@@ -92,7 +112,7 @@ const Discount = () => {
       method: 'DELETE',
       headers: {
         'Content-type': 'application/json',
-        "Authorization": `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
@@ -105,6 +125,11 @@ const Discount = () => {
           toast.error(e?.message);
         }
       });
+  };
+
+  const confirmDelete = () => {
+    if (!selectedDiscountId) return;
+    deleteDiscount(selectedDiscountId);
   };
 
   return (
@@ -145,7 +170,10 @@ const Discount = () => {
                   <td className="px-4 py-2 border">{item?.finished_at}</td>
                   <td className="px-4 py-2 border">{item?.status ? "Active" : "Inactive"}</td>
                   <td className="px-4 py-2 border">
-                    <button className="text-white bg-orange-400 hover:bg-orange-400 border border-orange-400 px-4 py-2 rounded">
+                    <button
+                      onClick={() => handleEdit(item)}
+                      className="text-white bg-orange-400 hover:bg-orange-500 border border-orange-400 px-4 py-2 rounded"
+                    >
                       Edit
                     </button>
                     <button
@@ -162,6 +190,7 @@ const Discount = () => {
         )}
       </div>
 
+      {/* Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/10 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
@@ -171,39 +200,32 @@ const Discount = () => {
             >
               ✕
             </button>
-            <h2 className="text-2xl font-bold mb-6 text-center">Add Discount</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              {isEditMode ? "Edit Discount" : "Add Discount"}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <input
-                  type="number"
-                  placeholder="Discount (%)"
-                  value={discount}
-                  onChange={(e) => setDiscount(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-                  required
-                />
-              </div>
-
-              <div>
-                <input
-                  type="date"
-                  value={started_at}
-                  onChange={(e) => setStarted_at(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-                  required
-                />
-              </div>
-
-              <div>
-                <input
-                  type="date"
-                  value={finished_at}
-                  onChange={(e) => setFinished_at(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
-                  required
-                />
-              </div>
-
+              <input
+                type="number"
+                placeholder="Discount (%)"
+                value={discount}
+                onChange={(e) => setDiscount(e.target.value)}
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                required
+              />
+              <input
+                type="date"
+                value={started_at}
+                onChange={(e) => setStarted_at(e.target.value)}
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                required
+              />
+              <input
+                type="date"
+                value={finished_at}
+                onChange={(e) => setFinished_at(e.target.value)}
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                required
+              />
               <div className="flex items-center gap-2">
                 <input
                   id="status"
@@ -216,18 +238,18 @@ const Discount = () => {
                   Active
                 </label>
               </div>
-
               <button
                 type="submit"
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded mt-4"
               >
-                Add Discount
+                {isEditMode ? "Update Discount" : "Add Discount"}
               </button>
             </form>
           </div>
         </div>
       )}
 
+      {/* Delete Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative">

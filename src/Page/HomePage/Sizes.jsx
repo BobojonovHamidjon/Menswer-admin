@@ -8,12 +8,29 @@ const Size = () => {
   const [size, setSize] = useState([]);
   const [sizes, setSizes] = useState('');
   const [selectedSizeId, setSelectedSizeId] = useState(null);
+  const [isEditing, setIsEditing] = useState(false);
 
   const token = localStorage.getItem('token');
 
   // Modal ochish va yopish
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = (id = null) => {
+    if (id) {
+      setIsEditing(true);
+      setSelectedSizeId(id);
+      const selected = size.find(item => item.id === id);
+      setSizes(selected?.size || '');
+    } else {
+      setIsEditing(false);
+      setSizes('');
+    }
+    setIsModalOpen(true);
+  };
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSizes('');
+    setIsEditing(false);
+    setSelectedSizeId(null);
+  };
 
   const openDeleteModal = (id) => {
     setSelectedSizeId(id);
@@ -37,33 +54,35 @@ const Size = () => {
     getSize();
   }, []);
 
-  // Size qo'shish
+  // Size qo'shish va tahrirlash
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('https://back.ifly.com.uz/api/sizes', {
-      method: 'POST',
+    const method = isEditing ? 'PATCH' : 'POST';
+    const url = isEditing
+      ? `https://back.ifly.com.uz/api/sizes/${selectedSizeId}`
+      : 'https://back.ifly.com.uz/api/sizes';
+
+    fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
-        size: sizes
-      })
+        size: sizes,
+      }),
     })
       .then((res) => res.json())
       .then((data) => {
         if (data?.success) {
-          toast.success("Size added successfully!");
+          toast.success(isEditing ? 'Size updated successfully!' : 'Size added successfully!');
           getSize();
           closeModal();
         } else {
-          toast.error(data?.message?.message || "Something went wrong!");
+          toast.error(data?.message || 'Failed to save size.');
         }
       })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Server error!");
-      });
+      .catch(() => toast.error('Something went wrong!'));
   };
 
   // Size o'chirish
@@ -72,23 +91,20 @@ const Size = () => {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      }
+        'Authorization': `Bearer ${token}`,
+      },
     })
       .then((res) => res.json())
       .then((data) => {
         if (data?.success) {
-          toast.success("Size deleted successfully!");
+          toast.success('Size deleted successfully!');
           getSize();
           closeDeleteModal();
         } else {
-          toast.error(data?.message || "Delete failed!");
+          toast.error(data?.message || 'Delete failed!');
         }
       })
-      .catch((error) => {
-        console.error(error);
-        toast.error("Server error during delete!");
-      });
+      .catch(() => toast.error('Server error during delete!'));
   };
 
   // O'chirishni tasdiqlash
@@ -103,7 +119,7 @@ const Size = () => {
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold">Size</h1>
         <button
-          onClick={openModal}
+          onClick={() => openModal()}
           className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
         >
           Add Size
@@ -131,7 +147,10 @@ const Size = () => {
                   <td className="px-4 py-2 border">{index + 1}</td>
                   <td className="px-4 py-2 border">{item?.size}</td>
                   <td className="px-4 py-2 border flex gap-2">
-                    <button className="text-white bg-orange-400 hover:bg-orange-500 px-2 py-1 rounded">
+                    <button
+                      onClick={() => openModal(item.id)}
+                      className="text-white bg-orange-400 hover:bg-orange-500 px-2 py-1 rounded"
+                    >
                       Edit
                     </button>
                     <button
@@ -148,7 +167,7 @@ const Size = () => {
         )}
       </div>
 
-      {/* Add Size Modal */}
+      {/* Add/Edit Size Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
@@ -158,7 +177,7 @@ const Size = () => {
             >
               ✕
             </button>
-            <h2 className="text-2xl font-bold mb-6 text-center">Add Sizes</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">{isEditing ? 'Edit Size' : 'Add Size'}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <input
@@ -174,7 +193,7 @@ const Size = () => {
                 type="submit"
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded mt-4"
               >
-                Add Size
+                {isEditing ? 'Update Size' : 'Add Size'}
               </button>
             </form>
           </div>

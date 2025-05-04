@@ -1,9 +1,12 @@
+// To'liq kod - Edit funksiyasi bilan yangilangan FAQ component
+
 import React, { useEffect, useState } from 'react';
 import { toast } from 'react-toastify';
 
 const Faq = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
   const [selectedId, setSelectedId] = useState(null);
   const [faq, setFaq] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -17,11 +20,35 @@ const Faq = () => {
 
   const token = localStorage.getItem('token');
 
-  // Modalni ochish
-  const openModal = () => setIsModalOpen(true);
-  const closeModal = () => setIsModalOpen(false);
+  const openModal = (item = null) => {
+    if (item) {
+      setIsEditing(true);
+      setSelectedId(item.id);
+      setQuestion_en(item.question_en);
+      setQuestion_ru(item.question_ru);
+      setQuestion_de(item.question_de);
+      setAnswer_en(item.answer_en);
+      setAnswer_ru(item.answer_ru);
+      setAnswer_de(item.answer_de);
+    } else {
+      setIsEditing(false);
+      setSelectedId(null);
+      setQuestion_en('');
+      setQuestion_ru('');
+      setQuestion_de('');
+      setAnswer_en('');
+      setAnswer_ru('');
+      setAnswer_de('');
+    }
+    setIsModalOpen(true);
+  };
 
-  // Delete modalni ochish
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setSelectedId(null);
+    setIsEditing(false);
+  };
+
   const openDeleteModal = (id) => {
     setSelectedId(id);
     setIsDeleteModalOpen(true);
@@ -32,7 +59,6 @@ const Faq = () => {
     setIsDeleteModalOpen(false);
   };
 
-  // FAQlarni olish
   const getFaq = () => {
     setLoading(true);
     fetch('https://back.ifly.com.uz/api/faq')
@@ -45,14 +71,18 @@ const Faq = () => {
     getFaq();
   }, []);
 
-  // FAQ qo'shish
   const handleSubmit = (e) => {
     e.preventDefault();
-    fetch('https://back.ifly.com.uz/api/faq', {
-      method: 'POST',
+    const method = isEditing ? 'PATCH' : 'POST';
+    const url = isEditing
+      ? `https://back.ifly.com.uz/api/faq/${selectedId}`
+      : 'https://back.ifly.com.uz/api/faq';
+
+    fetch(url, {
+      method,
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({
         question_en,
@@ -66,23 +96,22 @@ const Faq = () => {
       .then((res) => res.json())
       .then((data) => {
         if (data?.success) {
-          toast.success('FAQ created successfully!');
+          toast.success(isEditing ? 'FAQ updated successfully!' : 'FAQ created successfully!');
           getFaq();
           closeModal();
         } else {
-          toast.error(data?.message || 'Failed to create FAQ.');
+          toast.error(data?.message || 'Failed to save FAQ.');
         }
       })
       .catch(() => toast.error('Something went wrong!'));
   };
 
-  // FAQni o'chirish
   const deleteFaq = (id) => {
     fetch(`https://back.ifly.com.uz/api/faq/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        Authorization: `Bearer ${token}`,
       },
     })
       .then((res) => res.json())
@@ -105,18 +134,16 @@ const Faq = () => {
 
   return (
     <div className="p-6 relative">
-      {/* Header */}
       <div className="flex justify-between items-center mb-4">
         <h1 className="text-2xl font-semibold">FAQ</h1>
         <button
-          onClick={openModal}
+          onClick={() => openModal()}
           className="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded"
         >
           Add FAQ
         </button>
       </div>
 
-      {/* Table */}
       <div className="overflow-x-auto bg-white rounded-lg shadow p-4">
         {loading ? (
           <div className="flex justify-center items-center p-8">
@@ -129,10 +156,6 @@ const Faq = () => {
                 <th className="px-4 py-2 border text-left">№</th>
                 <th className="px-4 py-2 border text-left">Question (EN)</th>
                 <th className="px-4 py-2 border text-left">Answer (EN)</th>
-                <th className="px-4 py-2 border text-left">Question (RU)</th>
-                <th className="px-4 py-2 border text-left">Answer (RU)</th>
-                <th className="px-4 py-2 border text-left">Question (DE)</th>
-                <th className="px-4 py-2 border text-left">Answer (DE)</th>
                 <th className="px-4 py-2 border text-left">Actions</th>
               </tr>
             </thead>
@@ -140,18 +163,17 @@ const Faq = () => {
               {faq.map((item, index) => (
                 <tr key={item.id || index}>
                   <td className="px-4 py-2 border">{index + 1}</td>
-                  <td className="px-4 py-2 border">{item?.question_en}</td>
-                  <td className="px-4 py-2 border">{item?.answer_en}</td>
-                  <td className="px-4 py-2 border">{item?.question_ru}</td>
-                  <td className="px-4 py-2 border">{item?.answer_ru}</td>
-                  <td className="px-4 py-2 border">{item?.question_de}</td>
-                  <td className="px-4 py-2 border">{item?.answer_de}</td>
+                  <td className="px-4 py-2 border">{item.question_en}</td>
+                  <td className="px-4 py-2 border">{item.answer_en}</td>
                   <td className="px-4 py-2 border flex gap-2">
-                    <button className="bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded">
+                    <button
+                      onClick={() => openModal(item)}
+                      className="bg-orange-400 hover:bg-orange-500 text-white px-2 py-1 rounded"
+                    >
                       Edit
                     </button>
                     <button
-                      onClick={() => openDeleteModal(item?.id)}
+                      onClick={() => openDeleteModal(item.id)}
                       className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded"
                     >
                       Delete
@@ -164,7 +186,6 @@ const Faq = () => {
         )}
       </div>
 
-      {/* Add FAQ Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative max-h-[90vh] overflow-y-auto">
@@ -174,26 +195,26 @@ const Faq = () => {
             >
               ✕
             </button>
-            <h2 className="text-2xl font-bold mb-6 text-center">Add FAQ</h2>
+            <h2 className="text-2xl font-bold mb-6 text-center">
+              {isEditing ? 'Edit FAQ' : 'Add FAQ'}
+            </h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
                 <label className="block font-semibold mb-1">Question (EN)</label>
                 <input
                   type="text"
-                  placeholder="Question in English"
                   value={question_en}
                   onChange={(e) => setQuestion_en(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full p-2 border rounded"
                   required
                 />
               </div>
               <div>
                 <label className="block font-semibold mb-1">Answer (EN)</label>
                 <textarea
-                  placeholder="Answer in English"
                   value={answer_en}
                   onChange={(e) => setAnswer_en(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full p-2 border rounded"
                   required
                 />
               </div>
@@ -201,20 +222,18 @@ const Faq = () => {
                 <label className="block font-semibold mb-1">Question (RU)</label>
                 <input
                   type="text"
-                  placeholder="Question in Russian"
                   value={question_ru}
                   onChange={(e) => setQuestion_ru(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full p-2 border rounded"
                   required
                 />
               </div>
               <div>
                 <label className="block font-semibold mb-1">Answer (RU)</label>
                 <textarea
-                  placeholder="Answer in Russian"
                   value={answer_ru}
                   onChange={(e) => setAnswer_ru(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full p-2 border rounded"
                   required
                 />
               </div>
@@ -222,20 +241,18 @@ const Faq = () => {
                 <label className="block font-semibold mb-1">Question (DE)</label>
                 <input
                   type="text"
-                  placeholder="Question in German"
                   value={question_de}
                   onChange={(e) => setQuestion_de(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full p-2 border rounded"
                   required
                 />
               </div>
               <div>
                 <label className="block font-semibold mb-1">Answer (DE)</label>
                 <textarea
-                  placeholder="Answer in German"
                   value={answer_de}
                   onChange={(e) => setAnswer_de(e.target.value)}
-                  className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-green-400"
+                  className="w-full p-2 border rounded"
                   required
                 />
               </div>
@@ -243,14 +260,13 @@ const Faq = () => {
                 type="submit"
                 className="w-full bg-green-500 hover:bg-green-600 text-white font-semibold py-2 rounded mt-4"
               >
-                Add FAQ
+                {isEditing ? 'Update FAQ' : 'Add FAQ'}
               </button>
             </form>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {isDeleteModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/20 backdrop-blur-sm z-50">
           <div className="bg-white rounded-lg p-6 w-full max-w-md relative">
