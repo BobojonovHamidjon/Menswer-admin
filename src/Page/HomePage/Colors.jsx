@@ -49,7 +49,7 @@ const Colors = () => {
 
   const getColor = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/colors')
+    fetch('https://testaoron.limsa.uz/api/colors')
       .then((res) => res.json())
       .then((e) => setColor(e?.data))
       .finally(() => setLoading(false));
@@ -58,8 +58,8 @@ const Colors = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     const url = editingColor
-      ? `https://back.ifly.com.uz/api/colors/${editingColor.id}`
-      : 'https://back.ifly.com.uz/api/colors';
+      ? `https://testaoron.limsa.uz/api/colors/${editingColor.id}`
+      : 'https://testaoron.limsa.uz/api/colors';
     const method = editingColor ? 'PATCH' : 'POST';
 
     fetch(url, {
@@ -87,7 +87,7 @@ const Colors = () => {
   };
 
   const deleteCategory = (id) => {
-    fetch(`https://back.ifly.com.uz/api/colors/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/colors/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-type': 'application/json',

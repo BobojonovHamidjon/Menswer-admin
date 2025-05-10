@@ -61,7 +61,7 @@ const Faq = () => {
 
   const getFaq = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/faq')
+    fetch('https://testaoron.limsa.uz/api/faq')
       .then((res) => res.json())
       .then((data) => setFaq(data?.data || []))
       .finally(() => setLoading(false));
@@ -75,8 +75,8 @@ const Faq = () => {
     e.preventDefault();
     const method = isEditing ? 'PATCH' : 'POST';
     const url = isEditing
-      ? `https://back.ifly.com.uz/api/faq/${selectedId}`
-      : 'https://back.ifly.com.uz/api/faq';
+      ? `https://testaoron.limsa.uz/api/faq/${selectedId}`
+      : 'https://testaoron.limsa.uz/api/faq';
 
     fetch(url, {
       method,
@@ -107,7 +107,7 @@ const Faq = () => {
   };
 
   const deleteFaq = (id) => {
-    fetch(`https://back.ifly.com.uz/api/faq/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/faq/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

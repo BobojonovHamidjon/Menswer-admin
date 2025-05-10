@@ -42,7 +42,7 @@ const Contact = () => {
 
   const getContact = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/contact')
+    fetch('https://testaoron.limsa.uz/api/contact')
       .then((res) => res.json())
       .then((data) => setContact(data?.data || []))
       .finally(() => setLoading(false));
@@ -56,8 +56,8 @@ const Contact = () => {
     e.preventDefault();
 
     const url = editMode
-      ? `https://back.ifly.com.uz/api/contact/${selectedId}`
-      : 'https://back.ifly.com.uz/api/contact';
+      ? `https://testaoron.limsa.uz/api/contact/${selectedId}`
+      : 'https://testaoron.limsa.uz/api/contact';
     const method = editMode ? 'PATCH' : 'POST';
 
     fetch(url, {
@@ -88,7 +88,7 @@ const Contact = () => {
   };
 
   const deleteContact = (id) => {
-    fetch(`https://back.ifly.com.uz/api/contact/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/contact/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

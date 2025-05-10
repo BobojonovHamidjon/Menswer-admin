@@ -21,7 +21,7 @@ const News = () => {
 
   const fetchNews = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/news')
+    fetch('https://testaoron.limsa.uz/api/news')
       .then((res) => res.json())
       .then((data) => setNews(data?.data || []))
       .finally(() => setLoading(false));
@@ -66,8 +66,8 @@ const News = () => {
     if (formData.image) data.append("file", formData.image);
 
     const url = editingItem
-      ? `https://back.ifly.com.uz/api/news/${editingItem.id}`
-      : `https://back.ifly.com.uz/api/news`;
+      ? `https://testaoron.limsa.uz/api/news/${editingItem.id}`
+      : `https://testaoron.limsa.uz/api/news`;
     const method = editingItem ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -90,7 +90,7 @@ const News = () => {
   };
 
   const handleDelete = () => {
-    fetch(`https://back.ifly.com.uz/api/news/${deletingItemId}`, {
+    fetch(`https://testaoron.limsa.uz/api/news/${deletingItemId}`, {
       method: 'DELETE',
       headers: {
         Authorization: `Bearer ${token}`,
@@ -230,9 +230,9 @@ const News = () => {
                   <td className="border px-4 py-2">{index + 1}</td>
                   <td className="border px-4 py-2">
                     <img
-                      src={`https://back.ifly.com.uz/${item.image}`}
+                      src={`https://testaoron.limsa.uz/${item.image}`}
                       onClick={() =>
-                        setSelectedImage(`https://back.ifly.com.uz/${item.image}`)
+                        setSelectedImage(`https://testaoron.limsa.uz/${item.image}`)
                       }
                       className="w-20 h-20 object-cover rounded cursor-pointer"
                       alt={item.title_en}

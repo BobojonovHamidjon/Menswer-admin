@@ -18,7 +18,7 @@ const Categories = () => {
 
   const getCategory = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/category')
+    fetch('https://testaoron.limsa.uz/api/category')
       .then((res) => res.json())
       .then((e) => setCategory(e?.data))
       .finally(() => setLoading(false));
@@ -62,8 +62,8 @@ const Categories = () => {
     e.preventDefault();
 
     const url = isEditMode
-      ? `https://back.ifly.com.uz/api/category/${editCategoryId}`
-      : 'https://back.ifly.com.uz/api/category';
+      ? `https://testaoron.limsa.uz/api/category/${editCategoryId}`
+      : 'https://testaoron.limsa.uz/api/category';
 
     const method = isEditMode ? 'PATCH' : 'POST';
 
@@ -92,7 +92,7 @@ const Categories = () => {
   };
 
   const deleteCategory = (id) => {
-    fetch(`https://back.ifly.com.uz/api/category/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/category/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-type': 'application/json',

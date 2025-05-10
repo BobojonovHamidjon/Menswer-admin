@@ -44,7 +44,7 @@ const Size = () => {
   // Size ro'yxatini olish
   const getSize = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/sizes')
+    fetch('https://testaoron.limsa.uz/api/sizes')
       .then((res) => res.json())
       .then((data) => setSize(data?.data))
       .finally(() => setLoading(false));
@@ -59,8 +59,8 @@ const Size = () => {
     e.preventDefault();
     const method = isEditing ? 'PATCH' : 'POST';
     const url = isEditing
-      ? `https://back.ifly.com.uz/api/sizes/${selectedSizeId}`
-      : 'https://back.ifly.com.uz/api/sizes';
+      ? `https://testaoron.limsa.uz/api/sizes/${selectedSizeId}`
+      : 'https://testaoron.limsa.uz/api/sizes';
 
     fetch(url, {
       method,
@@ -87,7 +87,7 @@ const Size = () => {
 
   // Size o'chirish
   const deleteCategory = (id) => {
-    fetch(`https://back.ifly.com.uz/api/sizes/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/sizes/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',

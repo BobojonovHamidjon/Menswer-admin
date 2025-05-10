@@ -43,7 +43,7 @@ const Discount = () => {
 
   const getDiscount = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/discount')
+    fetch('https://testaoron.limsa.uz/api/discount')
       .then((res) => res.json())
       .then((e) => setDiscountt(e?.data))
       .finally(() => setLoading(false));
@@ -79,8 +79,8 @@ const Discount = () => {
     };
 
     const url = isEditMode
-      ? `https://back.ifly.com.uz/api/discount/${editingId}`
-      : 'https://back.ifly.com.uz/api/discount';
+      ? `https://testaoron.limsa.uz/api/discount/${editingId}`
+      : 'https://testaoron.limsa.uz/api/discount';
 
     const method = isEditMode ? 'PATCH' : 'POST';
 
@@ -108,7 +108,7 @@ const Discount = () => {
   };
 
   const deleteDiscount = (id) => {
-    fetch(`https://back.ifly.com.uz/api/discount/${id}`, {
+    fetch(`https://testaoron.limsa.uz/api/discount/${id}`, {
       method: 'DELETE',
       headers: {
         'Content-type': 'application/json',

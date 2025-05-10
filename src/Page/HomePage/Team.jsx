@@ -18,7 +18,7 @@ const Team = () => {
 
   const getTeam = () => {
     setLoading(true);
-    fetch('https://back.ifly.com.uz/api/team-section')
+    fetch('https://testaoron.limsa.uz/api/team-section')
       .then((item) => item.json())
       .then((e) => setTeam(e?.data || []))
       .finally(() => setLoading(false));
@@ -38,8 +38,8 @@ const Team = () => {
     if (image) formData.append('file', image);
 
     const url = editingItem
-      ? `https://back.ifly.com.uz/api/team-section/${editingItem.id}`
-      : 'https://back.ifly.com.uz/api/team-section';
+      ? `https://testaoron.limsa.uz/api/team-section/${editingItem.id}`
+      : 'https://testaoron.limsa.uz/api/team-section';
     const method = editingItem ? 'PUT' : 'POST';
 
     fetch(url, {
@@ -80,7 +80,7 @@ const Team = () => {
   };
 
   const handleDelete = () => {
-    fetch(`https://back.ifly.com.uz/api/team-section/${deletingItemId}`, {
+    fetch(`https://testaoron.limsa.uz/api/team-section/${deletingItemId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -236,10 +236,10 @@ const Team = () => {
                   <td className="px-4 py-2 border">
                     <img
                       onClick={() =>
-                        setSelectedImage(`https://back.ifly.com.uz/${item?.image}`)
+                        setSelectedImage(`https://testaoron.limsa.uz/${item?.image}`)
                       }
                       className="w-20 h-20 object-cover rounded cursor-pointer hover:scale-105 transition-transform"
-                      src={`https://back.ifly.com.uz/${item?.image}`}
+                      src={`https://testaoron.limsa.uz/${item?.image}`}
                       alt={item?.full_name}
                     />
                   </td>
